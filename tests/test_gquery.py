@@ -1,1 +1,0 @@
-from gquery import gquery
