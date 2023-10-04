@@ -2,9 +2,14 @@ from .city import CityInfo
 import os
 import pandas as pd
 
-CITIES_DATAFILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data", "worldcities.csv"
+DATA_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.path.pardir,
+    os.path.pardir,
+    "data",
 )
+
+CITIES_DATAFILE = os.path.join(DATA_PATH, "worldcities.csv")
 
 
 class GQueryEngine:
