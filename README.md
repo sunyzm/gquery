@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-$ pip install gquery
+$ pip install git+https://github.com/sunyzm/gquery.git
 ```
 
 ## Usage
