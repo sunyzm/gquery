@@ -1,4 +1,6 @@
+from .airport import AirportInfo
 from .city import CityInfo
+from .coordinate import Coordinate
 import os
 import pandas as pd
 
@@ -8,25 +10,34 @@ DATA_PATH = os.path.join(
 )
 
 CITIES_DATAFILE = os.path.join(DATA_PATH, "worldcities.csv")
+AIRPORTS_DATAFILE = os.path.join(DATA_PATH, "global_airports.csv")
 
 
 class GQueryEngine:
-    def __init__(self, datafile_path=CITIES_DATAFILE, debug_enabled=False):
-        if not os.path.exists(datafile_path):
-            raise FileExistsError(f"File {datafile_path} does not exists")
+    def __init__(self, debug_enabled=False):
+        if not os.path.exists(CITIES_DATAFILE):
+            raise FileExistsError(f"File {CITIES_DATAFILE} does not exists")
 
-        df = pd.read_csv(datafile_path, header=0, engine="c")
-        df = df.assign(index=df.index)
-        df.drop(columns=["iso2", "iso3", "capital", "id"], inplace=True)
-        df["city_normalized"] = df["city_ascii"].str.lower()
+        if not os.path.exists(AIRPORTS_DATAFILE):
+            raise FileExistsError(f"File {AIRPORTS_DATAFILE} does not exists")
 
-        self.__worldcity_df = df
+        self._city_df = pd.read_csv(CITIES_DATAFILE, header=0, engine="c")
+        self._city_df = self._city_df.assign(index=self._city_df.index)
+        self._city_df.drop(
+            columns=["iso2", "iso3", "capital", "id"], inplace=True
+        )
+        self._city_df["city_normalized"] = self._city_df[
+            "city_ascii"
+        ].str.lower()
+
+        self._airport_df = pd.read_csv(AIRPORTS_DATAFILE, header=0, engine="c")
+        self._airport_df = self._airport_df.assign(index=self._airport_df.index)
 
         if debug_enabled:
             print("GQueryEngine has been initalized.")
 
     def get(self, id: int) -> CityInfo | None:
-        df = self.__worldcity_df
+        df = self._city_df
         matched_rows = df[df.index == id]
         if matched_rows.empty:
             print(f"ERROR: City ID {id} is not valid")
@@ -36,7 +47,7 @@ class GQueryEngine:
         return CityInfo(city_data)
 
     def retrieve(self, city_name: str, max_num: int = -1) -> list[CityInfo]:
-        df = self.__worldcity_df
+        df = self._city_df
         matched_rows = df[df["city_normalized"] == city_name.lower()]
         if matched_rows.empty:
             return []
@@ -46,9 +57,20 @@ class GQueryEngine:
         ]
         return matched_cities[:max_num] if max_num > 0 else matched_cities
 
-    def print(self, city_name: str) -> None:
-        matched_cities = self.retrieve(city_name)
-        if len(matched_cities) == 0:
-            print(f"{city_name} is not found")
-        else:
-            print(matched_cities[0])
+    def find_airport(self, code: str) -> AirportInfo | None:
+        df = self._airport_df
+        matched_rows = df[df["Code"] == code.upper()]
+        if matched_rows.empty:
+            return None
+
+        airport_data = matched_rows.iloc[0].to_dict()
+        return AirportInfo(
+            index=airport_data["index"],
+            iata_code=airport_data["Code"],
+            name=airport_data["Name"],
+            country=airport_data["Country"],
+            coord=Coordinate(
+                airport_data["Latitude"], airport_data["Longitude"]
+            ),
+            seats=int(airport_data["TotalSeats"]),
+        )
