@@ -10,7 +10,13 @@ $ pip install git+https://github.com/sunyzm/gquery.git
 
 ## Usage
 
-- TODO
+### CLI
+
+```bash
+$ gquery info "new york" "san francisco" london
+$ gquery distance paris berlin
+$ gquery distance "san francisco" "los angeles" --unit=mi
+```
 
 ## License
 
@@ -18,4 +24,7 @@ $ pip install git+https://github.com/sunyzm/gquery.git
 
 ## Credits
 
--  The project was created with [`cookiecutter`](https://cookiecutter.readthedocs.io/en/latest/) and the `py-pkgs-cookiecutter` [template](https://github.com/py-pkgs/py-pkgs-cookiecutter).
+Data sources:
+
+- City data from https://simplemaps.com/data/world-cities
+- Airport data from https://datacatalog.worldbank.org/search/dataset/0038117/Global-Airports
