@@ -21,6 +21,12 @@ class Coordinate:
             f"{decimal_to_degree(self.lng, ('E' if self.lng >= 0 else 'W'))}"
         )
 
+    def __iter__(self):
+        return (v for v in (self.lat, self.lng))
+
+    def __eq__(self, other):
+        return tuple(self) == tuple(other)
+
 
 class LengthUnit(Enum):
     KM = 1
