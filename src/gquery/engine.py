@@ -45,7 +45,7 @@ class GQueryEngine:
         if debug_enabled:
             print("GQueryEngine has been initalized.")
 
-    def get(self, id: int) -> CityInfo | None:
+    def get_city(self, id: int) -> CityInfo | None:
         df = self._city_df
         matched_rows = df[df.index == id]
         if matched_rows.empty:
@@ -55,7 +55,7 @@ class GQueryEngine:
         city_data = matched_rows.iloc[0].to_dict()
         return _convert_city_data(city_data)
 
-    def retrieve(self, city_name: str, max_num: int = -1) -> list[CityInfo]:
+    def find_cities(self, city_name: str, max_num: int = -1) -> list[CityInfo]:
         df = self._city_df
         matched_rows = df[df["city_normalized"] == city_name.lower()]
         if matched_rows.empty:

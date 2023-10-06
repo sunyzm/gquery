@@ -6,7 +6,7 @@ import sys
 
 
 def find_city(query_engine: GQueryEngine, city_name: str) -> CityInfo | None:
-    matched_cities = query_engine.retrieve(city_name)
+    matched_cities = query_engine.find_cities(city_name)
     if len(matched_cities) == 0:
         print("No matched city is found.")
         return None
@@ -33,10 +33,14 @@ def main():
     query_engine = GQueryEngine()
 
     match argv[1:]:
-        case ("info", *city_names):
-            for city_name in city_names:
+        case ("info", *names):
+            for name in names:
                 if (
-                    matched_city := find_city(query_engine, city_name)
+                    matched_airport := query_engine.find_airport(name)
+                ) is not None:
+                    print(matched_airport)
+                elif (
+                    matched_city := find_city(query_engine, name)
                 ) is not None:
                     print(matched_city)
         case ("distance", city1, city2, *extra_arg):
