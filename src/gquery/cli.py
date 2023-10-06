@@ -1,3 +1,4 @@
+from .airport import AirportInfo
 from .coordinate import compute_coord_distance, LengthUnit
 from .city import CityInfo
 from .engine import GQueryEngine
@@ -28,6 +29,12 @@ def find_city(query_engine: GQueryEngine, city_name: str) -> CityInfo | None:
         return matched_cities[selected - 1]
 
 
+def find_place(query_engine: GQueryEngine, name: str) -> AirportInfo | CityInfo | None:
+    if matched_airport := query_engine.find_airport(name):
+        return matched_airport
+    return find_city(query_engine, name)
+
+
 def main():
     argv = sys.argv
     query_engine = GQueryEngine()
@@ -35,18 +42,17 @@ def main():
     match argv[1:]:
         case ("info", *names):
             for name in names:
-                if (
-                    matched_airport := query_engine.find_airport(name)
-                ) is not None:
-                    print(matched_airport)
-                elif (
-                    matched_city := find_city(query_engine, name)
-                ) is not None:
-                    print(matched_city)
-        case ("distance", city1, city2, *extra_arg):
-            city_info_1 = find_city(query_engine, city1)
-            city_info_2 = find_city(query_engine, city2)
-            if city_info_1 is None or city_info_2 is None:
+                if matched_place := find_place(query_engine, name):
+                    print(matched_place)
+        case ("distance", name1, name2, *extra_arg):
+            place1 = find_place(query_engine, name1)
+            if place1 is None:
+                print("Failed to find {name1}")
+                exit(1)
+
+            place2 = find_place(query_engine, name2)
+            if place2 is None:
+                print("Failed to find {name2}")
                 exit(1)
 
             unit = LengthUnit.KM
@@ -63,14 +69,14 @@ def main():
                             exit(1)
 
             distance, unit_symbol = compute_coord_distance(
-                city_info_1.coord, city_info_2.coord, unit
+                place1.coord, place2.coord, unit
             )
             print(
-                f"Distance between {city_info_1.name} and "
-                f"{city_info_2.name}: {distance:.1f} {unit_symbol}"
+                f"Distance between {place1.name} and "
+                f"{place2.name}: {distance:.1f} {unit_symbol}"
             )
         case _:
-            print("Unrecognized arguments")
+            print("Unrecognized command")
             exit(1)
 
 
