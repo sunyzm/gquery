@@ -1,6 +1,7 @@
 from .airport import AirportInfo
 from .city import CityInfo
 from .coordinate import Coordinate
+from typing import Any, Mapping
 import os
 import pandas as pd
 
@@ -8,9 +9,17 @@ DATA_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "data",
 )
-
 CITIES_DATAFILE = os.path.join(DATA_PATH, "worldcities.csv")
 AIRPORTS_DATAFILE = os.path.join(DATA_PATH, "global_airports.csv")
+
+
+def _convert_city_data(csv_data: Mapping[str, Any]) -> CityInfo:
+    return CityInfo(index=csv_data["index"], 
+                        name=csv_data["city"],
+                        population=csv_data["population"],
+                        country=csv_data["country"],
+                        admin=csv_data["admin_name"],
+                        coord=Coordinate(csv_data["lat"], csv_data["lng"]))
 
 
 class GQueryEngine:
@@ -44,7 +53,7 @@ class GQueryEngine:
             return None
 
         city_data = matched_rows.iloc[0].to_dict()
-        return CityInfo(city_data)
+        return _convert_city_data(city_data)
 
     def retrieve(self, city_name: str, max_num: int = -1) -> list[CityInfo]:
         df = self._city_df
@@ -52,9 +61,9 @@ class GQueryEngine:
         if matched_rows.empty:
             return []
 
-        matched_cities = [
-            CityInfo(row.to_dict()) for _, row in matched_rows.iterrows()
-        ]
+        matched_cities = [_convert_city_data(row.to_dict()) 
+                          for _, row in matched_rows.iterrows()]
+
         return matched_cities[:max_num] if max_num > 0 else matched_cities
 
     def find_airport(self, code: str) -> AirportInfo | None:
