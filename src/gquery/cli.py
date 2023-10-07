@@ -1,7 +1,4 @@
-from .airport import AirportInfo
-from .coordinate import compute_coord_distance, LengthUnit
-from .city import CityInfo
-from .engine import GQueryEngine
+from gquery import AirportInfo, CityInfo, compute_coord_distance, LengthUnit, GQueryEngine
 import pyinputplus as pyip
 import sys
 

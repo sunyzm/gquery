@@ -1,4 +1,4 @@
-from .coordinate import Coordinate
+from gquery.coordinate import Coordinate
 from dataclasses import dataclass
 
 

@@ -1,6 +1,6 @@
-from .airport import AirportInfo
-from .city import CityInfo
-from .coordinate import Coordinate
+from gquery.airport import AirportInfo
+from gquery.city import CityInfo
+from gquery.coordinate import Coordinate
 from typing import Any, Mapping
 import os
 import pandas as pd
