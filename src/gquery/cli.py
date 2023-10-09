@@ -1,4 +1,10 @@
-from gquery import AirportInfo, CityInfo, compute_coord_distance, LengthUnit, GQueryEngine
+from gquery import (
+    AirportInfo,
+    CityInfo,
+    compute_coord_distance,
+    LengthUnit,
+    GQueryEngine,
+)
 import click
 import pyinputplus as pyip
 
@@ -16,9 +22,7 @@ def find_city(query_engine: GQueryEngine, city_name: str) -> CityInfo | None:
         print("There are multiple matches:")
         for i in range(len(matched_cities)):
             city_info = matched_cities[i]
-            print(
-                f"{i+1}. {city_info.name} ({city_info.country}, {city_info.admin})"
-            )
+            print(f"{i+1}. {city_info.name} ({city_info.country}, {city_info.admin})")
         selected = pyip.inputInt(
             f"Please select a city [1-{len(matched_cities)}]:",
             default=1,
@@ -44,7 +48,7 @@ def cli():
 def info(names):
     for name in names:
         if matched_place := find_place(_query_engine, name):
-            print(matched_place)    
+            print(matched_place)
 
 
 @click.command()
@@ -72,7 +76,7 @@ def distance(names, unit):
             exit(1)
 
     distance, unit_symbol = compute_coord_distance(
-                place1.coord, place2.coord, length_unit
+        place1.coord, place2.coord, length_unit
     )
     print(
         f"Distance between {place1.name} and "

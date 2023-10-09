@@ -1,46 +1,37 @@
 from gquery.airport import AirportInfo
 from gquery.city import CityInfo
 from gquery.coordinate import Coordinate
+from importlib import resources
 from typing import Any, Mapping
-import os
 import pandas as pd
-
-DATA_PATH = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "data",
-)
-CITIES_DATAFILE = os.path.join(DATA_PATH, "worldcities.csv")
-AIRPORTS_DATAFILE = os.path.join(DATA_PATH, "global_airports.csv")
 
 
 def _convert_city_data(csv_data: Mapping[str, Any]) -> CityInfo:
-    return CityInfo(index=csv_data["index"], 
-                        name=csv_data["city"],
-                        population=csv_data["population"],
-                        country=csv_data["country"],
-                        admin=csv_data["admin_name"],
-                        coord=Coordinate(csv_data["lat"], csv_data["lng"]))
+    return CityInfo(
+        index=csv_data["index"],
+        name=csv_data["city"],
+        population=csv_data["population"],
+        country=csv_data["country"],
+        admin=csv_data["admin_name"],
+        coord=Coordinate(csv_data["lat"], csv_data["lng"]),
+    )
 
 
 class GQueryEngine:
     def __init__(self, debug_enabled=False):
-        if not os.path.exists(CITIES_DATAFILE):
-            raise FileExistsError(f"File {CITIES_DATAFILE} does not exists")
+        with resources.as_file(
+            resources.files("gquery.data").joinpath("worldcities.csv")
+        ) as city_datafile:
+            self._city_df = pd.read_csv(city_datafile, header=0, engine="c")
+            self._city_df = self._city_df.assign(index=self._city_df.index)
+            self._city_df.drop(columns=["iso2", "iso3", "capital", "id"], inplace=True)
+            self._city_df["city_normalized"] = self._city_df["city_ascii"].str.lower()
 
-        if not os.path.exists(AIRPORTS_DATAFILE):
-            raise FileExistsError(f"File {AIRPORTS_DATAFILE} does not exists")
-
-        self._city_df = pd.read_csv(CITIES_DATAFILE, header=0, engine="c")
-        self._city_df = self._city_df.assign(index=self._city_df.index)
-        self._city_df.drop(
-            columns=["iso2", "iso3", "capital", "id"], inplace=True
-        )
-        self._city_df["city_normalized"] = self._city_df[
-            "city_ascii"
-        ].str.lower()
-
-        self._airport_df = pd.read_csv(AIRPORTS_DATAFILE, header=0, engine="c")
-        self._airport_df = self._airport_df.assign(index=self._airport_df.index)
+        with resources.as_file(
+            resources.files("gquery.data").joinpath("global_airports.csv")
+        ) as airport_datafile:
+            self._airport_df = pd.read_csv(airport_datafile, header=0, engine="c")
+            self._airport_df = self._airport_df.assign(index=self._airport_df.index)
 
         if debug_enabled:
             print("GQueryEngine has been initalized.")
@@ -61,8 +52,9 @@ class GQueryEngine:
         if matched_rows.empty:
             return []
 
-        matched_cities = [_convert_city_data(row.to_dict()) 
-                          for _, row in matched_rows.iterrows()]
+        matched_cities = [
+            _convert_city_data(row.to_dict()) for _, row in matched_rows.iterrows()
+        ]
 
         return matched_cities[:max_num] if max_num > 0 else matched_cities
 
@@ -78,8 +70,6 @@ class GQueryEngine:
             iata_code=airport_data["Code"],
             name=airport_data["Name"],
             country=airport_data["Country"],
-            coord=Coordinate(
-                airport_data["Latitude"], airport_data["Longitude"]
-            ),
+            coord=Coordinate(airport_data["Latitude"], airport_data["Longitude"]),
             seats=int(airport_data["TotalSeats"]),
         )
