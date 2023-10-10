@@ -84,8 +84,26 @@ def distance(names, unit):
     )
 
 
+@click.command()
+@click.argument("name")
+@click.option("--num", default=1, type=int)
+def nearby_airports(name, num):
+    city = find_city(_query_engine, name)
+    if city is None:
+        print(f"Failed to find city {name}")
+        exit(1)
+
+    for airport in _query_engine.find_nearest_airports(city.coord, num=num):
+        print(airport)
+        distance, unit = compute_coord_distance(city.coord, airport.coord)
+        print(
+            f"Distance to {city.name}: {distance} {unit}\n"
+        )
+
+
 cli.add_command(info)
 cli.add_command(distance)
+cli.add_command(nearby_airports, name="nearby-airports")
 
 
 def main():

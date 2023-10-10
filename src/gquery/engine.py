@@ -1,6 +1,6 @@
 from gquery.airport import AirportInfo
 from gquery.city import CityInfo
-from gquery.coordinate import Coordinate
+from gquery.coordinate import Coordinate, compute_coord_distance
 from importlib import resources
 from typing import Any, Mapping
 import pandas as pd
@@ -89,5 +89,17 @@ class GQueryEngine:
         return _convert_airport_data(airport_data)
 
     def iter_airports(self):
-        for index, data in self._airport_df.iterrows():
+        for _, data in self._airport_df.iterrows():
             yield _convert_airport_data(data.to_dict())
+
+    def find_nearest_airports(
+        self, center: Coordinate, num: int = 1
+    ) -> list[AirportInfo]:
+        airport_and_distance = []
+        for airport in self.iter_airports():
+            airport_and_distance.append(
+                (airport, compute_coord_distance(center, airport.coord))
+            )
+
+        airport_and_distance.sort(key=lambda x: x[1])
+        return [airport for airport, _ in airport_and_distance[:num]]

@@ -16,5 +16,5 @@ class AirportInfo:
             f"{self.iata_code} ({self.name})\n"
             f"- Coordinates: {self.coord}\n"
             f"- Country: {self.country}\n"
-            f"- Annual seats (intl): {self.seats:,}\n"
+            f"- Annual seats (intl): {self.seats:,}"
         )
