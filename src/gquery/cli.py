@@ -38,6 +38,17 @@ def find_place(query_engine: GQueryEngine, name: str) -> AirportInfo | CityInfo 
     return find_city(query_engine, name)
 
 
+def get_distance_unit(unit: str) -> LengthUnit:
+    match unit:
+        case "mi" | "mile":
+            return LengthUnit.MI
+        case "km" | "kilometer":
+            return LengthUnit.KM
+        case _:
+            print(f"Unrecognized unit {unit}")
+            exit(1)
+
+
 @click.group()
 def cli():
     pass
@@ -53,7 +64,7 @@ def info(names):
 
 @click.command()
 @click.argument("names", nargs=2)
-@click.option("--unit", default="km", help="Unit of distance (km or mi)")
+@click.option("--unit", default="km", type=str, help="Unit of distance (km or mi)")
 def distance(names, unit):
     place1 = find_place(_query_engine, names[0])
     if place1 is None:
@@ -65,18 +76,9 @@ def distance(names, unit):
         print(f"Failed to find {names[1]}")
         exit(1)
 
-    length_unit = LengthUnit.KM
-    match unit:
-        case "mi" | "mile":
-            length_unit = LengthUnit.MI
-        case "km" | "kilometer":
-            length_unit = LengthUnit.KM
-        case _:
-            print(f"Unrecognized unit {unit}")
-            exit(1)
-
+    distance_unit = get_distance_unit(unit)
     distance, unit_symbol = compute_coord_distance(
-        place1.coord, place2.coord, length_unit
+        place1.coord, place2.coord, distance_unit
     )
     print(
         f"Distance between {place1.name} and "
@@ -87,18 +89,20 @@ def distance(names, unit):
 @click.command()
 @click.argument("name")
 @click.option("--num", default=1, type=int)
-def nearby_airports(name, num):
+@click.option("--unit", default="km", type=str, help="Unit of distance (km or mi)")
+def nearby_airports(name, num, unit):
     city = find_city(_query_engine, name)
     if city is None:
         print(f"Failed to find city {name}")
         exit(1)
 
+    distance_unit = get_distance_unit(unit)
     for airport in _query_engine.find_nearest_airports(city.coord, num=num):
         print(airport)
-        distance, unit = compute_coord_distance(city.coord, airport.coord)
-        print(
-            f"Distance to {city.name}: {distance} {unit}\n"
+        distance, unit = compute_coord_distance(
+            city.coord, airport.coord, distance_unit
         )
+        print(f"Distance to {city.name}: {distance} {unit}\n")
 
 
 cli.add_command(info)
