@@ -17,6 +17,17 @@ def _convert_city_data(csv_data: Mapping[str, Any]) -> CityInfo:
     )
 
 
+def _convert_airport_data(csv_data: Mapping[str, Any]) -> AirportInfo:
+    return AirportInfo(
+        index=csv_data["index"],
+        iata_code=csv_data["Code"],
+        name=csv_data["Name"],
+        country=csv_data["Country"],
+        coord=Coordinate(csv_data["Latitude"], csv_data["Longitude"]),
+        seats=int(csv_data["TotalSeats"]),
+    )
+
+
 class GQueryEngine:
     def __init__(self, debug_enabled=False):
         with resources.as_file(
@@ -58,6 +69,16 @@ class GQueryEngine:
 
         return matched_cities[:max_num] if max_num > 0 else matched_cities
 
+    def get_airport(self, id: int) -> AirportInfo | None:
+        df = self._airport_df
+        matched_rows = df[df.index == id]
+        if matched_rows.empty:
+            print(f"ERROR: Airport ID {id} is not valid")
+            return None
+
+        airport_data = matched_rows.iloc[0].to_dict()
+        return _convert_airport_data(airport_data)
+
     def find_airport(self, code: str) -> AirportInfo | None:
         df = self._airport_df
         matched_rows = df[df["Code"] == code.upper()]
@@ -65,11 +86,8 @@ class GQueryEngine:
             return None
 
         airport_data = matched_rows.iloc[0].to_dict()
-        return AirportInfo(
-            index=airport_data["index"],
-            iata_code=airport_data["Code"],
-            name=airport_data["Name"],
-            country=airport_data["Country"],
-            coord=Coordinate(airport_data["Latitude"], airport_data["Longitude"]),
-            seats=int(airport_data["TotalSeats"]),
-        )
+        return _convert_airport_data(airport_data)
+
+    def iter_airports(self):
+        for index, data in self._airport_df.iterrows():
+            yield _convert_airport_data(data.to_dict())
