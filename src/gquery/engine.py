@@ -1,6 +1,7 @@
 from gquery.airport import AirportInfo
 from gquery.city import CityInfo
 from gquery.coordinate import Coordinate, compute_coord_distance
+import gquery
 from importlib import resources
 from typing import Any, Mapping
 import pandas as pd
@@ -31,7 +32,7 @@ def _convert_airport_data(csv_data: Mapping[str, Any]) -> AirportInfo:
 class GQueryEngine:
     def __init__(self, debug_enabled=False):
         with resources.as_file(
-            resources.files("gquery.data").joinpath("worldcities.csv")
+            resources.files(gquery.data).joinpath("worldcities.csv")
         ) as city_datafile:
             self._city_df = pd.read_csv(city_datafile, header=0, engine="c")
             self._city_df = self._city_df.assign(index=self._city_df.index)
@@ -39,7 +40,7 @@ class GQueryEngine:
             self._city_df["city_normalized"] = self._city_df["city_ascii"].str.lower()
 
         with resources.as_file(
-            resources.files("gquery.data").joinpath("global_airports.csv")
+            resources.files(gquery.data).joinpath("global_airports.csv")
         ) as airport_datafile:
             self._airport_df = pd.read_csv(airport_datafile, header=0, engine="c")
             self._airport_df = self._airport_df.assign(index=self._airport_df.index)
