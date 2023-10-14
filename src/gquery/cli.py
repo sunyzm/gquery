@@ -63,27 +63,35 @@ def info(names):
 
 
 @click.command()
-@click.argument("names", nargs=2)
+@click.argument("names", nargs=-1)
 @click.option("--unit", default="km", type=str, help="Unit of distance (km or mi)")
 def distance(names, unit):
-    place1 = find_place(_query_engine, names[0])
-    if place1 is None:
-        print(f"Failed to find {names[0]}")
+    if len(names) < 2:
+        print("At least two places are required")
         exit(1)
 
-    place2 = find_place(_query_engine, names[1])
-    if place2 is None:
-        print(f"Failed to find {names[1]}")
-        exit(1)
+    places = []
+    for name in names:
+        if (place := find_place(_query_engine, name)) is None:
+            print(f"Failed to find {name}")
+            exit(1)
+        places.append(place)
 
     distance_unit = get_distance_unit(unit)
-    distance, unit_symbol = compute_coord_distance(
-        place1.coord, place2.coord, distance_unit
-    )
-    print(
-        f"Distance between {place1.name} and "
-        f"{place2.name}: {distance:.1f} {unit_symbol}"
-    )
+
+    total_distance = 0
+    unit_symbol = "km"
+    for i in range(len(places) - 1):
+        distance, unit_symbol = compute_coord_distance(
+            places[i].coord, places[i + 1].coord, distance_unit
+        )
+        total_distance += distance
+        print(
+            f"Distance between {places[i].name} and "
+            f"{places[i+1].name}: {distance:.1f} {unit_symbol}"
+        )
+
+    print(f"* Total distance: {total_distance:.1f} {unit_symbol}")
 
 
 @click.command()
