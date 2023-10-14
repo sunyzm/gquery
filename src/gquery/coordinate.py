@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum
+from .distance import LengthUnit, Distance
 from math import radians, cos, sin, asin, sqrt, floor
 
 
@@ -28,14 +28,9 @@ class Coordinate:
         return tuple(self) == tuple(other)
 
 
-class LengthUnit(Enum):
-    KM = 1
-    MI = 2
-
-
-def coord_distance(
-    lat1, lat2, lon1, lon2, unit: LengthUnit = LengthUnit.KM
-) -> tuple[float, str]:
+def gc_distance(
+    lat1: float, lat2: float, lon1: float, lon2: float, radius: float = 1.0
+) -> float:
     # Convert from degrees to radians.
     lon1 = radians(lon1)
     lon2 = radians(lon2)
@@ -48,21 +43,19 @@ def coord_distance(
     a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
 
     c = 2 * asin(sqrt(a))
-
-    use_mile = unit == LengthUnit.MI
-    # Radius of earth.
-    r = 3958.8 if use_mile else 6371
-
-    return c * r, "mi" if use_mile else "km"
+    return c * radius
 
 
 def compute_coord_distance(
     coord1: Coordinate, coord2: Coordinate, unit: LengthUnit = LengthUnit.KM
-) -> tuple[float, str]:
-    return coord_distance(
+) -> Distance:
+    # Radius of earth.
+    r = 3958.8 if unit == LengthUnit.MI else 6371
+    dist = gc_distance(
         coord1.lat,
         coord2.lat,
         coord1.lng,
         coord2.lng,
-        unit,
+        r,
     )
+    return Distance(dist, unit)

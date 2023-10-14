@@ -102,5 +102,5 @@ class GQueryEngine:
                 (airport, compute_coord_distance(center, airport.coord))
             )
 
-        airport_and_distance.sort(key=lambda x: x[1])
+        airport_and_distance.sort(key=lambda x: x[1].value)
         return [airport for airport, _ in airport_and_distance[:num]]

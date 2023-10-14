@@ -6,5 +6,6 @@ __version__ = version("gquery")
 from gquery import data
 from gquery.airport import AirportInfo
 from gquery.city import CityInfo
-from gquery.coordinate import Coordinate, LengthUnit, compute_coord_distance
+from gquery.coordinate import Coordinate, compute_coord_distance
 from gquery.engine import GQueryEngine
+from gquery.distance import LengthUnit, Distance

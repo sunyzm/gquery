@@ -3,6 +3,7 @@ from gquery import (
     CityInfo,
     compute_coord_distance,
     LengthUnit,
+    Distance,
     GQueryEngine,
 )
 import click
@@ -39,7 +40,7 @@ def find_place(query_engine: GQueryEngine, name: str) -> AirportInfo | CityInfo 
 
 
 def get_distance_unit(unit: str) -> LengthUnit:
-    match unit:
+    match unit.lower():
         case "mi" | "mile":
             return LengthUnit.MI
         case "km" | "kilometer":
@@ -79,19 +80,18 @@ def distance(names, unit):
 
     distance_unit = get_distance_unit(unit)
 
-    total_distance = 0
-    unit_symbol = "km"
+    total_distance = Distance(0, distance_unit)
     for i in range(len(places) - 1):
-        distance, unit_symbol = compute_coord_distance(
+        distance = compute_coord_distance(
             places[i].coord, places[i + 1].coord, distance_unit
         )
         total_distance += distance
         print(
-            f"Distance between {places[i].name} and "
-            f"{places[i+1].name}: {distance:.1f} {unit_symbol}"
+            f"Distance between {places[i].name} and " f"{places[i+1].name}: {distance}"
         )
 
-    print(f"* Total distance: {total_distance:.1f} {unit_symbol}")
+    if len(places) > 2:
+        print(f"* Total distance: {total_distance}")
 
 
 @click.command()
@@ -107,10 +107,8 @@ def nearby_airports(name, num, unit):
     distance_unit = get_distance_unit(unit)
     for airport in _query_engine.find_nearest_airports(city.coord, num=num):
         print(airport)
-        distance, unit = compute_coord_distance(
-            city.coord, airport.coord, distance_unit
-        )
-        print(f"Distance to {city.name}: {distance} {unit}\n")
+        distance = compute_coord_distance(city.coord, airport.coord, distance_unit)
+        print(f"Distance to {city.name}: {distance}\n")
 
 
 cli.add_command(info)
