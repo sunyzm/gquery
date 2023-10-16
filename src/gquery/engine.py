@@ -1,6 +1,7 @@
 from gquery.airport import AirportInfo
 from gquery.city import CityInfo
 from gquery.coordinate import Coordinate, compute_coord_distance
+from gquery.distance import Distance
 import gquery
 from importlib import resources
 from typing import Any, Mapping
@@ -94,13 +95,16 @@ class GQueryEngine:
             yield _convert_airport_data(data.to_dict())
 
     def find_nearest_airports(
-        self, center: Coordinate, num: int = 1
+        self,
+        loc: Coordinate,
+        num: int = 1,
+        search_radius: float = -1.0,
     ) -> list[AirportInfo]:
         airport_and_distance = []
         for airport in self.iter_airports():
-            airport_and_distance.append(
-                (airport, compute_coord_distance(center, airport.coord))
-            )
+            distance = compute_coord_distance(loc, airport.coord)
+            if search_radius <= 0 or distance.value <= search_radius:
+                airport_and_distance.append((airport, distance))
 
         airport_and_distance.sort(key=lambda x: x[1].value)
         return [airport for airport, _ in airport_and_distance[:num]]
