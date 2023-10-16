@@ -100,24 +100,30 @@ def distance(names, unit):
 @click.option("--unit", default="km", type=str, help="Unit of distance (km or mi)")
 @click.option("--maxdist", default=-1.0, type=float, help="Maximum distance to search")
 def nearby_airports(name, num, unit, maxdist):
-    city = find_city(_query_engine, name)
-    if city is None:
-        print(f"Failed to find city {name}")
+    place = find_place(_query_engine, name)
+    if place is None:
+        print(f"Failed to find {name}")
         exit(1)
 
     distance_unit = get_distance_unit(unit)
     search_radius = Distance(maxdist, distance_unit)
+    excluded_codes = set()
+    if isinstance(place, AirportInfo):
+        excluded_codes.add(place.iata_code)
 
     airports = _query_engine.find_nearest_airports(
-        city.coord, num=num, search_radius=search_radius.to_km().value
+        place.coord,
+        num=num,
+        search_radius=search_radius.to_km().value,
+        excluded_codes=excluded_codes,
     )
     if len(airports) == 0:
         print("No matching airport")
     for i in range(len(airports)):
         airport = airports[i]
         print(f"{i+1}.", airport)
-        distance = compute_coord_distance(city.coord, airport.coord, distance_unit)
-        print(f"Distance to {city.name}: {distance}\n")
+        distance = compute_coord_distance(place.coord, airport.coord, distance_unit)
+        print(f"Distance to {place.name}: {distance}\n")
 
 
 cli.add_command(info)

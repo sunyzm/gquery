@@ -99,9 +99,12 @@ class GQueryEngine:
         loc: Coordinate,
         num: int = 1,
         search_radius: float = -1.0,
+        excluded_codes: set[str] = set(),
     ) -> list[AirportInfo]:
         airport_and_distance = []
         for airport in self.iter_airports():
+            if airport.iata_code in excluded_codes:
+                continue
             distance = compute_coord_distance(loc, airport.coord)
             if search_radius <= 0 or distance.value <= search_radius:
                 airport_and_distance.append((airport, distance))
